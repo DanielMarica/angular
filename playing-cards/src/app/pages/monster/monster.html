@@ -1,1 +1,6 @@
-<p>monster works!</p>
+@if (monsterId()) {
+    <p>Monster {{monsterId()}}!</p>
+    <button (click)="next()">Next</button>
+} @else {
+    <p>New monster!</p>
+}

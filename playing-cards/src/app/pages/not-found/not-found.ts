@@ -1,11 +1,16 @@
 import { Component } from '@angular/core';
+import { LottieComponent } from 'ngx-lottie';
+import player from 'lottie-web';
+
+export function playerFactory() {
+  return player;
+}
 
 @Component({
   selector: 'app-not-found',
-  imports: [],
+  standalone: true,
+  imports: [ LottieComponent],
   templateUrl: './not-found.html',
-  styleUrl: './not-found.css'
+  styleUrls: ['./not-found.css']
 })
-export class NotFound {
-
-}
+export class NotFound { }
