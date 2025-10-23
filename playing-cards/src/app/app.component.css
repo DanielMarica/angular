@@ -1,41 +1,53 @@
-h1{
-        background-color: black;
-        color: white;
-        text-align : center;
+h1 {
+  background-color: black;
+  color: white;
+  text-align: center;
 }
 
 #card-list {
-	display: flex;
-	gap: 20px;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: center;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
 }
 h1 {
-    background-color: black;
-    color: white;
+  background-color: black;
+  color: white;
 }
 
 #card-list {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
 }
 
 .centered {
-    margin-top: 40px;
-    text-align: center;
+  margin-top: 40px;
+  text-align: center;
 }
 
 mat-toolbar {
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
 }
 
 mat-toolbar p {
-    flex-grow: 1;
-    margin: 0;
+  flex-grow: 1;
+  margin: 0;
+}
+
+/* pin the button to the left edge of the toolbar and vertically center it */
+.login-navigate {
+  position: absolute;
+  left: 80%;
+  top: 4%;
+  transform: translateY(-50%);
+  margin-left: 8px; /* optional spacing from the edge */
+}
+.logout{
+    color: red;
 }

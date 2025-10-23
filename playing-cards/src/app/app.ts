@@ -24,6 +24,8 @@ export class App {
         });
     }
 
+
+
     navigateToLogin() {
         this.router.navigate(['login']);
     }
