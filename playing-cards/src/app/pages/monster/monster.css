@@ -1,0 +1,61 @@
+.preview, .main {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.preview {
+    width: 300px;
+    margin: 20px;
+}
+
+.main {
+    width: calc(100% - 340px);
+}
+
+form {
+    max-width: 500px;
+    margin: 20px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+}
+
+mat-form-field {
+    width: 100%;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+label {
+    font-size: small;
+}
+
+.error {
+    font-size: x-small;
+    color: red;
+}
+
+/* ✅ Wrapper pour contenir les deux groupes de boutons */
+.buttons-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+/* ✅ Conteneur gauche pour le bouton Delete */
+.button-container.left {
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* ✅ Conteneur droit pour Back et Save */
+.button-container.right {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
