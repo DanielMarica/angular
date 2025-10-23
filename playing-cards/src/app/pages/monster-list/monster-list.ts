@@ -5,7 +5,7 @@ import { Monster } from '../../model/monster';
 import { MonsterService } from '../../services/monster/monster';
 import { CommonModule } from '@angular/common';
 import { PlayingCard } from '../../../app/components/playing-card/playing-card';
-
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-monster-list',
@@ -16,32 +16,22 @@ import { PlayingCard } from '../../../app/components/playing-card/playing-card';
 })
 export class MonsterListComponent {
 
-    monsterService = inject(MonsterService);
-
-    monsters = signal<Monster[]>([]);
-    search = model('');
+    private monsterService = inject(MonsterService);
     private router = inject(Router);
+
+    monsters = toSignal(this.monsterService.getAll());
+    search = model('');
+
     filteredMonsters = computed(() => {
-        return this.monsters().filter(monster => monster.name.includes(this.search()));
-    })
+        return this.monsters()?.filter(monster => monster.name.includes(this.search())) ?? [];
+    });
 
-    constructor() {
-        this.monsters.set(this.monsterService.getAll());
-    }
-
-    /*addGenericMonster() {
-        const monster = new Monster();
-        this.monsterService.add(monster);
-        this.monsters.set(this.monsterService.getAll());
-    }*/
-
-     // ✅ Créer un nouveau monstre
     addMonster() {
-        this.router.navigate(['/monster']);
+        this.router.navigate(['monster']);
     }
 
     openMonster(monster: Monster) {
-        this.router.navigate(['/monster', monster.id]);
+        this.router.navigate(['monster', monster.id]);
     }
 
 }

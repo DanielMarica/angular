@@ -1,10 +1,11 @@
+import { IMonster } from "../interfaces/monster";
 import { MonsterType } from "../utils/monster";
 
-export class Monster {
-    
+export class Monster implements IMonster {
+
     id: number = -1;
     name: string = "Monster";
-    image: string = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png";
+    image: string = "img/pika.png"
     type: MonsterType = MonsterType.ELECTRIC;
     hp: number = 60;
     figureCaption: string = "N°001 Monster";
@@ -16,4 +17,15 @@ export class Monster {
     copy(): Monster {
         return Object.assign(new Monster(), this);
     }
+
+    static fromJson(monsterData: IMonster) {
+        return Object.assign(new Monster(), monsterData);
+    }
+
+    toJson(): IMonster {
+        const jsonObject: IMonster = Object.assign({}, this);
+        delete jsonObject.id;
+        return jsonObject;
+    }
+
 }

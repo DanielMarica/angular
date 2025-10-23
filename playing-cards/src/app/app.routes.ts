@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { MonsterListComponent } from './pages/monster-list/monster-list';
-import { Monster } from './pages/monster/monster';
+import {MonsterComponent} from './pages/monster/monster'
 import { NotFound } from './pages/not-found/not-found';
 import { LoginComponent } from './pages/login/login';
 import { isLoggedInGuard } from './guards/is-logged-in/is-logged-in-guard';
@@ -20,12 +20,12 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        component: Monster,
+        component: MonsterComponent,
         canActivate: [isLoggedInGuard],
       },
       {
         path: ':id',
-        component: Monster,
+        component: MonsterComponent,
         canActivate: [isLoggedInGuard],
       },
     ],

@@ -2,14 +2,14 @@ import { Component, inject, OnInit, signal, OnDestroy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MonsterType } from '../../utils/monster';
-import { Subscription } from 'rxjs';
+import { filter, of, Subscription, switchMap } from 'rxjs';
 import { MonsterService } from '../../services/monster/monster';
 import { PlayingCard } from "../../components/playing-card/playing-card";
-import { Monster as MonsterModel } from '../../model/monster';
+import { Monster } from '../../model/monster';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatDialog } from '@angular/material/dialog';  // ✅ Ajouté
+import { MatDialog } from '@angular/material/dialog';  
 import { DeleteMonsterConfirmationDialog } from '../../components/delete-monster-confirmation-dialog/delete-monster-confirmation-dialog';  // ✅ Ajouté
 
 @Component({
@@ -19,15 +19,18 @@ import { DeleteMonsterConfirmationDialog } from '../../components/delete-monster
   templateUrl: './monster.html',
   styleUrl: './monster.css'
 })
-export class Monster implements OnInit, OnDestroy {
-    private monsterService = inject(MonsterService);
+export class MonsterComponent implements OnInit, OnDestroy {
+
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private fb = inject(FormBuilder);
-    private readonly dialog = inject(MatDialog);  // ✅ Ajouté
+    private monsterService = inject(MonsterService);
+    private readonly dialog = inject(MatDialog);
 
     private routeSubscription: Subscription | null = null;
     private formValuesSubscription: Subscription | null = null;
+    private saveSubscription: Subscription | null = null;
+    private deleteSubscription: Subscription | null = null;
 
     formGroup = this.fb.group({
         name: ['', [Validators.required]],
@@ -40,80 +43,71 @@ export class Monster implements OnInit, OnDestroy {
         attackDescription: ['', [Validators.required]]
     });
 
+    monster: Monster = Object.assign(new Monster(), this.formGroup.value);
     monsterTypes = Object.values(MonsterType);
     monsterId = -1;
-    monster = signal<MonsterModel>(new MonsterModel());
 
     ngOnInit(): void {
-        // ✅ D'ABORD s'abonner aux changements du formulaire
-        this.formValuesSubscription = this.formGroup.valueChanges.subscribe(values => {
-            const updatedMonster = new MonsterModel();
-            updatedMonster.id = this.monsterId;
-            updatedMonster.name = values.name || '';
-            updatedMonster.image = values.image || '';
-            updatedMonster.type = values.type || MonsterType.ELECTRIC;
-            updatedMonster.hp = values.hp || 0;
-            updatedMonster.figureCaption = values.figureCaption || '';
-            updatedMonster.attackName = values.attackName || '';
-            updatedMonster.attackStrength = values.attackStrength || 0;
-            updatedMonster.attackDescription = values.attackDescription || '';
-            
-            this.monster.set(updatedMonster);
+
+        this.formValuesSubscription = this.formGroup.valueChanges.subscribe(data => {
+            this.monster = Object.assign(new Monster(), data);
         });
 
-        // ✅ ENSUITE charger le monstre si on est en mode édition
-        this.routeSubscription = this.route.params.subscribe(params => {
-            if (params['id']) {
-                this.monsterId = parseInt(params['id']);
-                
-                const foundMonster = this.monsterService.get(this.monsterId);
-                
-                if (foundMonster) {
-                    this.monster.set(foundMonster);
-                    
-                    this.formGroup.patchValue({
-                        name: foundMonster.name,
-                        image: foundMonster.image,
-                        type: foundMonster.type,
-                        hp: foundMonster.hp,
-                        figureCaption: foundMonster.figureCaption,
-                        attackName: foundMonster.attackName,
-                        attackStrength: foundMonster.attackStrength,
-                        attackDescription: foundMonster.attackDescription
-                    });
+        this.routeSubscription = this.route.params.pipe(
+            switchMap(params => {
+                if (params['id']) {
+                    this.monsterId = parseInt(params['id']);
+                    return this.monsterService.get(this.monsterId);
                 }
-            } else {
-                this.monsterId = -1;
-                this.monster.set(new MonsterModel());
+                return of(null);
+            })
+        ).subscribe(monster => {
+            if (monster) {
+                this.monster = monster;
+                this.formGroup.patchValue(this.monster);
             }
         });
+
     }
 
     ngOnDestroy(): void {
+        this.formValuesSubscription?.unsubscribe();
         this.routeSubscription?.unsubscribe();
-        this.formValuesSubscription?.unsubscribe();  // ✅ Ajouté
+        this.saveSubscription?.unsubscribe();
+        this.deleteSubscription?.unsubscribe();
     }
 
     submit(event: Event) {
         event.preventDefault();
-        
-        if (this.formGroup.valid) {
-            const monsterToSave = this.monster();
-            
-            if (this.monsterId === -1) {
-                this.monsterService.add(monsterToSave);
-            } else {
-                monsterToSave.id = this.monsterId;
-                this.monsterService.update(monsterToSave);
-            }
-            
-            this.navigateBack();
+        let saveObservable;
+        if (this.monsterId === -1) {
+            saveObservable = this.monsterService.add(this.monster);
+        } else {
+            this.monster.id = this.monsterId;
+            saveObservable = this.monsterService.update(this.monster);
         }
+        this.saveSubscription = saveObservable.subscribe(_ => {
+            this.navigateBack();
+        })
     }
 
-    isFieldValid(fieldName: string) {
-        const formControl = this.formGroup.get(fieldName);
+    navigateBack() {
+        this.router.navigate(['/home']);
+    }
+
+    isFieldValid(name: string) {
+        const formControl = this.formGroup.get(name);
         return formControl?.invalid && (formControl?.dirty || formControl?.touched);
+    }
+
+    deleteMonster() {
+        const dialogRef = this.dialog.open(DeleteMonsterConfirmationDialog);
+        this.deleteSubscription = dialogRef.afterClosed().pipe(
+            filter(confirmation => confirmation),
+            switchMap(_ => this.monsterService.delete(this.monsterId))
+        ).subscribe(_ => {
+            this.navigateBack();
+        })
     }
 
     onFileChange(event: any) {
@@ -123,25 +117,12 @@ export class Monster implements OnInit, OnDestroy {
             reader.readAsDataURL(file);
             reader.onload = () => {
                 this.formGroup.patchValue({
-                    image: reader.result as string
+                    image: reader.result as string,
                 });
             };
         }
     }
 
-    navigateBack() {
-        this.router.navigate(['/home']);
-    }
-
-    // ✅ Fonction complète pour supprimer un monstre
-    deleteMonster() {
-        const dialogRef = this.dialog.open(DeleteMonsterConfirmationDialog);
-        
-        dialogRef.afterClosed().subscribe(confirmation => {
-            if (confirmation) {
-                this.monsterService.delete(this.monsterId);
-                this.navigateBack();
-            }
-        });
-    }
 }
+
+export { Monster };
