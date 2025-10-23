@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { MonsterListComponent } from './pages/monster-list/monster-list';
 import { Monster } from './pages/monster/monster';
 import { NotFound } from './pages/not-found/not-found';
+import { LoginComponent } from './pages/login/login';
 
 export const routes: Routes = [
     {
@@ -25,6 +26,11 @@ export const routes: Routes = [
                 component: Monster
             }
         ]
+    },
+    {
+        path:'login',
+        component : LoginComponent
+
     },
     {
         path: '**',
